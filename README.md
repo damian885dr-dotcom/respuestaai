@@ -43,6 +43,14 @@ Health:
 curl https://tu-app.onrender.com/health
 ```
 
+Probar Gemini desde el navegador:
+
+```bash
+curl https://tu-app.onrender.com/test-gemini
+```
+
+Si `test-gemini` devuelve error, revisa en Render que `GEMINI_API_KEY` exista y que el servicio haya redeployado despues de guardar la variable.
+
 Generar respuesta:
 
 ```bash

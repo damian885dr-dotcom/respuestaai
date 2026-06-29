@@ -10,13 +10,57 @@ const geminiTimeoutMs = Number(process.env.GEMINI_TIMEOUT_MS || 55000);
 app.use(cors());
 app.use(express.json({ limit: "256kb" }));
 
+app.get("/", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "respuesta-pro-ai",
+    message: "Backend funcionando. Usa /health para estado y /api/generate-reply para generar respuestas.",
+    endpoints: {
+      health: "/health",
+      testGemini: "/test-gemini",
+      generateReply: "/api/generate-reply"
+    }
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.json({
     ok: true,
     service: "respuesta-pro-ai",
     model: modelName,
+    geminiApiKeyConfigured: Boolean(process.env.GEMINI_API_KEY),
     timestamp: new Date().toISOString()
   });
+});
+
+app.get("/test-gemini", async (_req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
+        ok: false,
+        error: "GEMINI_API_KEY no configurada en Render"
+      });
+    }
+
+    const reply = await callGemini({
+      apiKey,
+      modelName,
+      prompt: "Responde solamente con esta frase: Gemini funcionando"
+    });
+
+    res.json({
+      ok: true,
+      model: modelName,
+      reply
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: "Gemini no respondio correctamente",
+      detail: String(error?.message || error)
+    });
+  }
 });
 
 app.post("/api/generate-reply", async (req, res) => {
